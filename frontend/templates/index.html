@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="/static/style.css" />
   </head>
   <body>
+    <div class="grain-overlay"></div>
     <div class="dashboard">
       <!-- Sidebar for History -->
       <aside class="sidebar">
@@ -25,30 +26,30 @@
 
       <!-- Main Content -->
       <main class="main">
-        <header class="header">
-          <h1>Factra Analytics</h1>
+        <header class="header reveal">
+          <h1>Factra Intelligence</h1>
           <p class="subtitle">Premium Misinformation Intelligence Report</p>
         </header>
 
         <!-- Unified Analysis Report (Always Visible) -->
         <div id="resultsContainer" class="results-container">
-          <div id="welcomeMessage" class="welcome-card card full-width">
-            <h3>Welcome to Factra Intelligence</h3>
-            <p>Please use the <strong>Factra Chrome Extension</strong> to analyze a news article. Your deep analysis results will be displayed here automatically.</p>
+          <div id="welcomeMessage" class="welcome-card card full-width reveal reveal-1">
+            <h3>Intelligence Repository Access</h3>
+            <p>Please use the <strong>Factra Chrome Extension</strong> to analyze a news article. Your deep intelligence report will be compiled here automatically.</p>
           </div>
           <!-- Left: Credibility & Confidence -->
           <div class="result-column">
-            <div class="card gauge-card">
+            <div class="card gauge-card reveal reveal-1">
               <h3>Credibility Score</h3>
               <div class="gauge-wrapper">
-                <div id="gauge" class="gauge" style="--p: 0; --c: #4f7cff">
+                <div id="gauge" class="gauge" style="--p: 0; --c: #d97757">
                   <div class="percentage"><span id="scoreValue">0</span><small>/100</small></div>
                 </div>
               </div>
               <div id="predBadge" class="badge">--</div>
             </div>
 
-            <div class="card detail-card">
+            <div class="card detail-card reveal reveal-2">
               <h3>Inference Confidence</h3>
               <div class="progress-bar">
                 <div id="confBar" class="bar" style="width: 0%"></div>
@@ -59,15 +60,15 @@
 
           <!-- Right: Linguistic Profile & Findings -->
           <div class="result-column">
-            <div class="card linguistic-card">
+            <div class="card linguistic-card reveal reveal-3">
               <h3>Linguistic Profile</h3>
               <div class="profile-grid">
                 <div class="stat-item">
-                  <label>Sentiment Tone</label>
+                  <label>Tone Check</label>
                   <div id="toneValue" class="value">--</div>
                 </div>
                 <div class="stat-item">
-                  <label>Readability</label>
+                  <label>Readability Level</label>
                   <div id="complexityValue" class="value">--</div>
                 </div>
                 <div class="stat-item">
@@ -76,20 +77,20 @@
                 </div>
               </div>
               <div class="fact-check-box">
-                <button id="factCheckBtn" class="btn secondary small">🔍 Google Fact-Check Search</button>
+                <button id="factCheckBtn" class="btn secondary small">🔍 Google Intelligence Check</button>
               </div>
             </div>
 
-            <div class="card detail-card">
-              <h3>Detailed Findings</h3>
+            <div class="card detail-card reveal reveal-4">
+              <h3>Technical Findings</h3>
               <div class="explanation-box">
-                <p id="explanationText">Results will appear here...</p>
+                <p id="explanationText">Compilation in progress...</p>
               </div>
             </div>
           </div>
 
           <!-- Full Width: Keywords -->
-          <div class="card keywords-card full-width">
+          <div class="card keywords-card full-width reveal reveal-5">
             <h3>Suspicious Cues Detected</h3>
             <div id="keywordsList" class="keywords-list">
               <!-- Dynamically populated -->

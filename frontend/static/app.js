@@ -50,7 +50,8 @@ function updateGauge(score) {
 
   // Update CSS variables for visual gauge
   g.style.setProperty("--p", num);
-  const color = num > 75 ? "#10b981" : num > 40 ? "#f59e0b" : "#ef4444";
+  // Anthropic accents: Green (#788c5d), Yellow (#f59e0b), Orange (#d97757)
+  const color = num > 75 ? "#788c5d" : num > 40 ? "#f59e0b" : "#d97757";
   g.style.setProperty("--c", color);
 }
 

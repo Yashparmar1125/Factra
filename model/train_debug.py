@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import argparse
+import inspect
 import json
 import os
+import sys
 from dataclasses import asdict
 from typing import Dict, List
 
@@ -25,6 +27,11 @@ from transformers import (
     TrainingArguments,
     set_seed,
 )
+
+# Allow running this file directly from the model/ folder.
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
 
 from data.dataset import prepare_dataframe
 from model.train import MODEL_NAME  # reuse the same model name + dataset logic
@@ -138,15 +145,21 @@ def main() -> None:
         seed=args.seed,
     )
 
-    trainer = Trainer(
-        model=model,
-        args=training_args,
-        train_dataset=train_ds,
-        eval_dataset=val_ds,
-        tokenizer=tokenizer,
-        data_collator=collator,
-        compute_metrics=computing_matrices,
-    )
+    trainer_kwargs = {
+        "model": model,
+        "args": training_args,
+        "train_dataset": train_ds,
+        "eval_dataset": val_ds,
+        "data_collator": collator,
+        "compute_metrics": computing_matrices,
+    }
+    trainer_params = inspect.signature(Trainer.__init__).parameters
+    if "processing_class" in trainer_params:
+        trainer_kwargs["processing_class"] = tokenizer
+    elif "tokenizer" in trainer_params:
+        trainer_kwargs["tokenizer"] = tokenizer
+
+    trainer = Trainer(**trainer_kwargs)
 
     trainer.train()
     metrics = trainer.evaluate()

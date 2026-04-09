@@ -1,9 +1,9 @@
 {
   "model_name": "bert-base-uncased",
-  "epochs": 2,
-  "batch_size": 4,
+  "epochs": 3,
+  "batch_size": 8,
   "lr": 2e-05,
-  "max_length": 128,
+  "max_length": 256,
   "seed": 42,
   "dataset_stats": {
     "n_rows": 3721,
@@ -19,14 +19,14 @@
     }
   },
   "val_metrics": {
-    "eval_loss": 0.011336530558764935,
+    "eval_loss": 0.010599292814731598,
     "eval_accuracy": 0.9986577181208054,
     "eval_precision": 0.9973404255319149,
     "eval_recall": 1.0,
     "eval_f1": 0.9986684420772304,
-    "eval_runtime": 6.0163,
-    "eval_samples_per_second": 123.831,
-    "eval_steps_per_second": 31.082,
-    "epoch": 2.0
+    "eval_runtime": 5.4076,
+    "eval_samples_per_second": 137.77,
+    "eval_steps_per_second": 17.383,
+    "epoch": 3.0
   }
 }
