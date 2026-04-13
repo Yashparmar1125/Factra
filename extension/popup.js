@@ -45,12 +45,21 @@ function setResult(data) {
   const suspicious = data.suspicious_words || [];
   const expl = highlightWords(data.explanation || "", suspicious);
   const pred = String(data.prediction || "");
-  const predClass = pred.toLowerCase() === "fake" ? "fake" : "real";
+  const predColor = pred.toLowerCase() === "fake" ? "text-danger" : "text-success";
   result.innerHTML = `
-    <div class="headline ${predClass}">${escapeHtml(pred)}</div>
-    <div class="kv"><strong>Confidence</strong><span>${(Number(data.confidence) * 100).toFixed(2)}%</span></div>
-    <div class="kv"><strong>Credibility</strong><span>${escapeHtml(String(data.credibility_score))} / 100</span></div>
-    <div style="margin-top:10px;"><strong>Explanation:</strong> ${expl}</div>
+    <div class="text-lg font-black uppercase mb-2 ${predColor}">${escapeHtml(pred)}</div>
+    <div class="flex justify-between items-center mt-1.5 text-xs text-slate-700 dark:text-gray-300">
+      <strong class="text-slate-500 dark:text-gray-400 font-semibold">Confidence</strong>
+      <span class="font-bold text-slate-900 dark:text-white">${(Number(data.confidence) * 100).toFixed(2)}%</span>
+    </div>
+    <div class="flex justify-between items-center mt-1.5 text-xs text-slate-700 dark:text-gray-300">
+      <strong class="text-slate-500 dark:text-gray-400 font-semibold">Credibility</strong>
+      <span class="font-bold text-slate-900 dark:text-white">${escapeHtml(String(data.credibility_score))} / 100</span>
+    </div>
+    <div class="mt-3 pt-3 border-t border-slate-200 dark:border-slate-700/50 text-xs leading-relaxed text-slate-700 dark:text-gray-300">
+      <strong class="block text-slate-500 dark:text-gray-400 font-semibold mb-1">Explanation:</strong> 
+      ${expl}
+    </div>
   `;
   result.classList.remove("hidden");
 }
@@ -75,7 +84,11 @@ async function extractPageText() {
     target: { tabId: tab.id },
     func: () => {
       const ps = Array.from(document.querySelectorAll("p"));
-      const chunks = ps
+      const filtered = ps.filter(p => {
+        const parent = p.closest("header, footer, nav, aside, [class*='modal'], [class*='popup'], [id*='modal'], [id*='popup']");
+        return !parent && p.innerText.trim().length > 20;
+      });
+      const chunks = filtered
         .map((p) => (p.innerText || "").trim())
         .filter(Boolean)
         .slice(0, 250);
@@ -238,7 +251,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         c: lastResult.confidence || "",
         e: lastResult.explanation || "",
         k: (lastResult.suspicious_words || []).join(","),
-        t: (lastResult.originalText || "").slice(0, 1000) // Pass snippet
+        t: (lastResult.originalText || "").slice(0, 600), // Reduced for URL safety
+        tone: lastResult.tone || "",
+        comp: lastResult.complexity || "",
+        obj: lastResult.objectivity || "",
+        web: JSON.stringify(lastResult.web_consensus || {})
       });
       url += "/?" + params.toString();
     }
@@ -252,6 +269,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     } catch (e) {
       setStatus(`Error: ${e.message}`);
     }
+  });
+
+  const themeToggle = document.getElementById('themeToggle');
+  themeToggle?.addEventListener('click', () => {
+    document.documentElement.classList.toggle('dark');
+    const isDark = document.documentElement.classList.contains('dark');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
   });
 });
 

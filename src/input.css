@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-800 font-sans antialiased transition-colors duration-300;
+  }
+  .dark body {
+    @apply bg-factra-900 text-gray-100;
+  }
+}
+
+@layer utilities {
+  .glass-card {
+    @apply bg-white/80 dark:bg-factra-800/80 backdrop-blur-md border border-slate-200 dark:border-factra-700/50 rounded-xl shadow-lg transition-colors duration-300;
+  }
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-primary/50;
+  }
+}

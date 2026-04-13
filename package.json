@@ -1,0 +1,24 @@
+{
+  "name": "factra",
+  "version": "1.0.0",
+  "description": "**Factra** is a professional-grade misinformation detection suite powered by a fine-tuned **BERT** (`bert-base-uncased`) model. It provides real-time analysis through a Chrome extension and a premium deep-analysis dashboard.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/darkacer211/Factra.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/darkacer211/Factra/issues"
+  },
+  "homepage": "https://github.com/darkacer211/Factra#readme",
+  "devDependencies": {
+    "tailwindcss": "^4.2.2"
+  }
+}

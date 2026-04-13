@@ -6,31 +6,62 @@
     <title>Factra</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;900&family=Lora:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="popup.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="popup-compiled.css?v=2" />
+    <script>
+      // Apply theme before render
+      if (localStorage.getItem('theme') === 'light') {
+        document.documentElement.classList.remove('dark');
+      } else {
+        document.documentElement.classList.add('dark');
+      }
+    </script>
   </head>
-  <body>
-    <div class="wrap">
-      <h1>FACTRA <small>INTEL</small></h1>
+  <body class="font-sans p-0 m-0 text-sm dark:bg-factra-900 dark:text-gray-100 bg-slate-50 text-slate-800 transition-colors duration-300">
+    <div class="w-[360px] p-4 flex flex-col gap-3 relative">
+      <!-- Theme Toggle -->
+      <button id="themeToggle" class="absolute top-4 right-4 p-1.5 rounded-md hover:bg-slate-200 dark:hover:bg-factra-800 transition-colors text-slate-500 dark:text-slate-400">
+        <!-- Sun icon for light mode -->
+        <svg class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+        <!-- Moon icon for dark mode -->
+        <svg class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+      </button>
 
-      <button id="analyzeTab" class="btn">Analyze this page</button>
-      <button id="clearHighlights" class="btn secondary">Clear highlights</button>
-      <button id="openDashboard" class="btn outline">🔍 Full Analysis Dashboard</button>
+      <!-- Header -->
+      <h1 class="text-xl font-black tracking-wide text-slate-800 dark:text-white flex items-center gap-2 m-0 border-b border-slate-200 dark:border-factra-700/50 pb-3">
+        FACTRA
+        <span class="text-[10px] font-bold tracking-wider uppercase text-primary border border-primary/40 bg-primary/10 px-1.5 py-0.5 rounded">Intel</span>
+      </h1>
 
-      <details class="details">
-        <summary class="summary">Settings</summary>
-        <label class="label" for="apiBase">API base URL</label>
-        <div class="row">
-          <input id="apiBase" class="input" type="text" placeholder="http://127.0.0.1:5000" />
-          <button id="saveApi" class="btn mini">Save</button>
+      <button id="analyzeTab" class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-2.5 px-4 rounded-lg shadow uppercase tracking-wide transition-all focus-ring">
+        Analyze this page
+      </button>
+      <button id="clearHighlights" class="w-full bg-white dark:bg-factra-800 hover:bg-slate-100 dark:hover:bg-factra-750 text-slate-700 dark:text-gray-300 font-semibold py-2 px-4 rounded-lg border border-slate-200 dark:border-factra-700 transition-all focus-ring">
+        Clear highlights
+      </button>
+      <button id="openDashboard" class="w-full bg-transparent hover:bg-slate-100 dark:hover:bg-factra-800/80 text-primary border border-primary/40 font-semibold py-2 px-4 rounded-lg transition-all focus-ring flex justify-center items-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        Full Analysis Dashboard
+      </button>
+
+      <details class="glass-card mt-2 group">
+        <summary class="cursor-pointer font-bold text-xs uppercase tracking-wider p-3 opacity-80 hover:opacity-100 list-none flex justify-between items-center text-slate-700 dark:text-slate-300">
+          Settings
+          <svg class="w-4 h-4 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+        </summary>
+        <div class="p-3 pt-0 border-t border-slate-200 dark:border-factra-700/50">
+          <label class="block text-xs font-semibold text-slate-500 dark:text-gray-400 mb-1" for="apiBase">API base URL</label>
+          <div class="flex gap-2">
+            <input id="apiBase" class="w-full bg-white dark:bg-factra-900/50 border border-slate-300 dark:border-factra-700 rounded-lg py-1.5 px-2.5 text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus-ring text-sm" type="text" placeholder="http://127.0.0.1:5000" />
+            <button id="saveApi" class="bg-primary hover:bg-primary/90 text-white font-bold py-1.5 px-3 rounded-lg transition-all focus-ring text-xs shrink-0">Save</button>
+          </div>
         </div>
       </details>
 
-      <div id="status" class="status"></div>
-      <div id="result" class="result hidden"></div>
+      <div id="status" class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 min-h-[16px] text-center mt-1"></div>
+      <div id="result" class="hidden mt-1 p-3 glass-card bg-primary/5 text-sm"></div>
     </div>
 
     <script src="popup.js"></script>
   </body>
 </html>
-

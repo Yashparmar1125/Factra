@@ -1,0 +1,17 @@
+{
+  "nytimes.com": { "reliability": "High", "bias": "Left-Center", "score": 95 },
+  "reuters.com": { "reliability": "Very High", "bias": "Neutral", "score": 98 },
+  "apnews.com": { "reliability": "Very High", "bias": "Neutral", "score": 98 },
+  "bbc.com": { "reliability": "High", "bias": "Neutral", "score": 92 },
+  "theguardian.com": { "reliability": "High", "bias": "Left-Center", "score": 88 },
+  "wsj.com": { "reliability": "High", "bias": "Right-Center", "score": 90 },
+  "npr.org": { "reliability": "High", "bias": "Left-Center", "score": 92 },
+  "foxnews.com": { "reliability": "Mixed", "bias": "Right", "score": 55 },
+  "breitbart.com": { "reliability": "Low", "bias": "Right", "score": 20 },
+  "infowars.com": { "reliability": "Very Low", "bias": "Right", "score": 5 },
+  "dailymail.co.uk": { "reliability": "Mixed", "bias": "Right", "score": 45 },
+  "rt.com": { "reliability": "Low", "bias": "Right", "score": 15 },
+  "aljazeera.com": { "reliability": "High", "bias": "Left-Center", "score": 85 },
+  "bloomberg.com": { "reliability": "High", "bias": "Neutral", "score": 94 },
+  "theonion.com": { "reliability": "Satire", "bias": "Neutral", "score": 0 }
+}

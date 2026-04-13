@@ -62,16 +62,7 @@ def create_app(model_dir: str) -> Flask:
 
         processed_text, i18n_meta = _i18n_preprocess(text)
         result = predict_text(model, tokenizer, device, processed_text)
-        return jsonify(
-            {
-                "prediction": result["prediction"],
-                "confidence": result["confidence"],
-                "credibility_score": result["credibility_score"],
-                "explanation": result["explanation"],
-                "suspicious_words": result.get("suspicious_words", []),
-                **i18n_meta,
-            }
-        )
+        return jsonify({**result, **i18n_meta})
 
     @app.post("/predict_url")
     def predict_url():
@@ -86,16 +77,7 @@ def create_app(model_dir: str) -> Flask:
 
         processed_text, i18n_meta = _i18n_preprocess(text)
         result = predict_text(model, tokenizer, device, processed_text)
-        return jsonify(
-            {
-                "prediction": result["prediction"],
-                "confidence": result["confidence"],
-                "credibility_score": result["credibility_score"],
-                "explanation": result["explanation"],
-                "suspicious_words": result.get("suspicious_words", []),
-                **i18n_meta,
-            }
-        )
+        return jsonify({**result, **i18n_meta})
 
     return app
 
