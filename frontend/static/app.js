@@ -31,11 +31,23 @@ function setModeUI(mode) {
   }
 }
 
+function sanitizeUrl(url) {
+  try {
+    const parsed = new URL(url);
+    if (['http:', 'https:'].includes(parsed.protocol)) return url;
+  } catch (e) {}
+  return '#';
+}
+
 function updateGauge(score) {
   const g = document.getElementById("gauge");
   const v = document.getElementById("scoreValue");
   const num = Number(score);
   
+  if (g) {
+    g.setAttribute("aria-valuenow", num);
+  }
+
   // Animate the number
   let current = 0;
   const step = Math.ceil(num / 30) || 1;
@@ -45,14 +57,15 @@ function updateGauge(score) {
       current = num;
       clearInterval(interval);
     }
-    v.textContent = current;
+    if (v) v.textContent = current;
   }, 20);
 
   // Update CSS variables for visual gauge
-  g.style.setProperty("--p", num);
-  // Anthropic accents: Green (#788c5d), Yellow (#f59e0b), Orange (#d97757)
-  const color = num > 75 ? "#788c5d" : num > 40 ? "#f59e0b" : "#d97757";
-  g.style.setProperty("--c", color);
+  if (g) {
+    g.style.setProperty("--p", num);
+    const color = num >= 70 ? "#10B981" : num >= 40 ? "#F59E0B" : "#F43F5E";
+    g.style.setProperty("--c", color);
+  }
 }
 
 function updateHistorySidebar(newScan = null) {
@@ -99,9 +112,11 @@ window.loadFromHistory = function(idx) {
     web_consensus: item.web
   };
 
-  document.getElementById("mode").value = "text";
+  const modeEl = document.getElementById("mode");
+  if (modeEl) modeEl.value = "text";
   setModeUI("text");
-  document.getElementById("textInput").value = item.text;
+  const textInputEl = document.getElementById("textInput");
+  if (textInputEl) textInputEl.value = item.text;
   
   renderReport(data);
 };
@@ -110,26 +125,34 @@ function checkHandOff() {
   const params = new URLSearchParams(window.location.search);
   if (params.get("handoff") !== "1") return false;
 
+  const pred = params.get("p");
+  if (!pred) return false;
+
   const data = {
-    prediction: params.get("p"),
-    credibility_score: params.get("s"),
-    confidence: params.get("c"),
-    explanation: params.get("e"),
-    suspicious_words: params.get("k") ? params.get("k").split(",") : [],
-    text: params.get("t"),
-    tone: params.get("tone"),
-    comp: params.get("comp"),
-    obj: params.get("obj"),
+    prediction: pred,
+    credibility_score: Number(params.get("s") || 0),
+    confidence: Number(params.get("c") || 0),
+    explanation: params.get("e") || "",
+    suspicious_words: params.get("k") ? params.get("k").split(",").filter(Boolean) : [],
+    text: params.get("t") || "",
+    tone: params.get("tone") || "Neutral / Informative",
+    comp: params.get("comp") || "Medium",
+    obj: params.get("obj") || "Objective",
     web_consensus: null
   };
 
-  if (params.get("web")) {
+  const webParam = params.get("web");
+  if (webParam) {
     try {
-      data.web_consensus = JSON.parse(params.get("web"));
+      data.web_consensus = JSON.parse(webParam);
     } catch (e) {
-      console.warn("Could not parse web_consensus data from URL (likely truncated).");
+      console.warn("Could not parse web_consensus:", e);
     }
   }
+
+  // Pre-fill input bar if present
+  const inputEl = document.getElementById("dashboardInput");
+  if (inputEl && data.text) inputEl.value = data.text;
 
   renderReport(data);
   return true;
@@ -211,7 +234,7 @@ function renderReport(data) {
       cSources.innerHTML = cData.sources.map(s => `
         <div class="mb-4 p-4 bg-white/50 dark:bg-black/30 rounded-xl border border-white/40 dark:border-white/5 backdrop-blur-sm block transition-all hover:shadow-lg hover:border-primary/30 group">
           <div class="flex justify-between items-start mb-2">
-            <a href="${s.link}" target="_blank" class="text-primary dark:text-accent font-black text-[13px] tracking-wide line-clamp-1 flex-1 group-hover:text-blue-500 transition-colors">${escapeHtml(s.title)}</a>
+            <a href="${sanitizeUrl(s.link)}" target="_blank" rel="noopener noreferrer" class="text-primary dark:text-accent font-black text-[13px] tracking-wide line-clamp-1 flex-1 group-hover:text-blue-500 transition-colors">${escapeHtml(s.title)}</a>
             ${s.reputable ? '<span class="text-[8px] font-black tracking-widest text-success border border-success/30 bg-success/10 px-2 py-1 rounded shadow-[0_0_8px_rgba(16,185,129,0.2)] ml-3 shrink-0">VERIFIED</span>' : ""}
           </div>
           <div class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed line-clamp-2">${escapeHtml(s.snippet)}</div>
@@ -276,5 +299,47 @@ document.addEventListener("DOMContentLoaded", () => {
     document.documentElement.classList.toggle('dark');
     const isDark = document.documentElement.classList.contains('dark');
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  });
+
+  // Direct In-Dashboard Analyzer
+  const inputEl = document.getElementById("dashboardInput");
+  const btnEl = document.getElementById("dashboardAnalyzeBtn");
+  const spinner = document.getElementById("dashboardLoadingSpinner");
+
+  async function runDirectAnalysis() {
+    const val = (inputEl?.value || "").trim();
+    if (!val) return;
+
+    if (btnEl) btnEl.disabled = true;
+    if (spinner) spinner.classList.remove("hidden");
+
+    try {
+      const isUrl = val.startsWith("http://") || val.startsWith("https://");
+      const endpoint = isUrl ? "/predict_url" : "/predict";
+      const payload = isUrl ? { url: val } : { text: val };
+
+      const resp = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = await resp.json();
+      if (!resp.ok) {
+        alert("Analysis error: " + (data.error || "Request failed"));
+        return;
+      }
+      data.text = val;
+      renderReport(data);
+    } catch (err) {
+      alert("Error: " + err.message);
+    } finally {
+      if (btnEl) btnEl.disabled = false;
+      if (spinner) spinner.classList.add("hidden");
+    }
+  }
+
+  btnEl?.addEventListener("click", runDirectAnalysis);
+  inputEl?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") runDirectAnalysis();
   });
 });

@@ -28,7 +28,8 @@ def _load_env():
 
 
 _ENV = _load_env()
-SERPER_API_KEY = _ENV.get("SERPER_API_KEY")
+SERPER_API_KEY = _ENV.get("SERPER_API_KEY") or os.getenv("SERPER_API_KEY")
+FACT_CHECK_API_KEY = _ENV.get("FACT_CHECK_API_KEY") or os.getenv("FACT_CHECK_API_KEY")
 CLICKBAIT_WORDS = ["shocking", "breaking", "exclusive"]
 
 _ALL_CAPS_RE = re.compile(r"\b[A-Z]{4,}\b")
@@ -123,7 +124,16 @@ def load_model(model_dir: str, device: str | None = None):
         device = "cuda" if torch.cuda.is_available() else "cpu"
 
     tokenizer = AutoTokenizer.from_pretrained(model_dir)
-    model = AutoModelForSequenceClassification.from_pretrained(model_dir, output_attentions=True)
+    try:
+        model = AutoModelForSequenceClassification.from_pretrained(model_dir, output_attentions=True)
+    except Exception as e:
+        # Fallback to base model architecture if local weights were not stored
+        import logging
+        logging.getLogger(__name__).warning(
+            "Local model weights missing in %s (%s). Falling back to 'bert-base-uncased' initialized head.",
+            model_dir, e
+        )
+        model = AutoModelForSequenceClassification.from_pretrained("bert-base-uncased", num_labels=2, output_attentions=True)
     model.to(device)
     model.eval()
     return model, tokenizer, device
@@ -165,8 +175,12 @@ def _detect_objectivity(text: str) -> str:
     return "Objective (Factual framing)"
 
 
-def _get_source_reputation(url: str) -> Dict[str, Any] | None:
+_SOURCE_REPUTATION_CACHE: Dict[str, Any] | None = None
+
+
+def _get_source_reputation(url: str | None) -> Dict[str, Any] | None:
     """Attempts to find a reputation entry for the given URL's domain."""
+    global _SOURCE_REPUTATION_CACHE
     if not url or not url.startswith("http"):
         return None
     
@@ -175,15 +189,16 @@ def _get_source_reputation(url: str) -> Dict[str, Any] | None:
         if domain.startswith("www."):
             domain = domain[4:]
         
-        here = os.path.dirname(__file__)
-        data_path = os.path.join(here, "..", "api", "source_reputation.json")
-        if not os.path.exists(data_path):
-            return None
+        if _SOURCE_REPUTATION_CACHE is None:
+            here = os.path.dirname(__file__)
+            data_path = os.path.join(here, "..", "api", "source_reputation.json")
+            if not os.path.exists(data_path):
+                _SOURCE_REPUTATION_CACHE = {}
+            else:
+                with open(data_path, "r") as f:
+                    _SOURCE_REPUTATION_CACHE = json.load(f)
             
-        with open(data_path, "r") as f:
-            reputations = json.load(f)
-            
-        return reputations.get(domain)
+        return _SOURCE_REPUTATION_CACHE.get(domain)
     except Exception:
         return None
 
@@ -284,7 +299,12 @@ def _fetch_web_consensus(text: str, api_key: str | None = None) -> Dict[str, Any
             snippet = r.get("snippet", "").lower()
             title = r.get("title", "").lower()
             
-            is_reputable = any(dom in link for dom in reputable_domains)
+            try:
+                hostname = urlparse(link).hostname or ""
+                is_reputable = any(hostname == dom or hostname.endswith("." + dom) for dom in reputable_domains)
+            except Exception:
+                is_reputable = False
+
             if is_reputable:
                 score_bonus += 20
             
@@ -315,9 +335,11 @@ def predict_text(
     text: str,
     max_length: int = 256,
     fact_check_api_key: str | None = None,
+    url: str = None,
 ):
     # Clean consistently with training.
     text_clean = clean_text(text)
+    text_raw = text
 
     inputs = tokenizer(
         text_clean,
@@ -335,10 +357,10 @@ def predict_text(
     prob_fake = float(probs[1])
 
     pred_label = "Real" if prob_real >= prob_fake else "Fake"
-    confidence = prob_real  # confidence = probability of being REAL
+    confidence = prob_real if pred_label == "Real" else (1.0 - prob_real)
 
-    credibility_score = _compute_credibility(prob_real, text_clean)
-    explanation, heuristic_suspicious = _build_explanation(text_clean, pred_label, prob_real)
+    credibility_score = _compute_credibility(prob_real, text_raw)
+    explanation, heuristic_suspicious = _build_explanation(text_raw, pred_label, prob_real)
 
     # Advanced Analysis
     tone = _analyze_tone(text)
@@ -349,10 +371,11 @@ def predict_text(
     ai_suspicious = _get_important_tokens(tokenizer, inputs, attentions)
     
     # Intelligence Upgrade: Real-Time Fact Check
-    fact_checks = _fetch_fact_checks(text, fact_check_api_key)
+    effective_fact_key = fact_check_api_key or FACT_CHECK_API_KEY
+    fact_checks = _fetch_fact_checks(text, effective_fact_key)
 
     # Intelligence Upgrade: Source Reputation
-    source_info = _get_source_reputation(text if text.startswith("http") else None)
+    source_info = _get_source_reputation(url)
     
     # Intelligence Upgrade: Web Consensus (V2.0)
     consensus_data = _fetch_web_consensus(text, SERPER_API_KEY)

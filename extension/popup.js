@@ -1,3 +1,13 @@
+// Theme detection (moved from inline script for MV3 CSP compliance)
+(function() {
+    const theme = localStorage.getItem('theme');
+    if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+    } else {
+        document.documentElement.classList.remove('dark');
+    }
+})();
+
 function escapeHtml(s) {
   return String(s)
     .replaceAll("&", "&amp;")
@@ -244,20 +254,24 @@ document.addEventListener("DOMContentLoaded", async () => {
     const base = await getApiBase();
     let url = base;
     if (lastResult) {
-      const params = new URLSearchParams({
+      const q = new URLSearchParams({
         handoff: "1",
-        p: lastResult.prediction || "",
-        s: lastResult.credibility_score || "",
-        c: lastResult.confidence || "",
-        e: lastResult.explanation || "",
+        p: String(lastResult.prediction || ""),
+        s: String(lastResult.credibility_score ?? ""),
+        c: String(lastResult.confidence ?? ""),
+        e: String(lastResult.explanation || ""),
         k: (lastResult.suspicious_words || []).join(","),
-        t: (lastResult.originalText || "").slice(0, 600), // Reduced for URL safety
-        tone: lastResult.tone || "",
-        comp: lastResult.complexity || "",
-        obj: lastResult.objectivity || "",
-        web: JSON.stringify(lastResult.web_consensus || {})
+        t: String(lastResult.originalText || "").slice(0, 1000),
+        tone: String(lastResult.tone || ""),
+        comp: String(lastResult.complexity || ""),
+        obj: String(lastResult.objectivity || "")
       });
-      url += "/?" + params.toString();
+      if (lastResult.web_consensus) {
+        try {
+          q.set("web", JSON.stringify(lastResult.web_consensus));
+        } catch (_) {}
+      }
+      url += "/?" + q.toString();
     }
     chrome.tabs.create({ url: url });
   });

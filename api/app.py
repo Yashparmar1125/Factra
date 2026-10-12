@@ -18,7 +18,7 @@ def create_app(model_dir: str) -> Flask:
     static_folder = os.path.join(here, "..", "frontend", "static")
     app = Flask(__name__, template_folder=template_folder, static_folder=static_folder)
     # Allow Chrome extension (and local frontend) to call the API.
-    CORS(app)
+    CORS(app, origins=["http://127.0.0.1:*", "http://localhost:*", "chrome-extension://*"])
 
     model, tokenizer, device = load_model(model_dir)
 
@@ -53,6 +53,14 @@ def create_app(model_dir: str) -> Flask:
     def index():
         return render_template("index.html")
 
+    @app.get("/health")
+    def health():
+        return jsonify({"status": "ok"})
+
+    @app.errorhandler(Exception)
+    def handle_exception(e):
+        return jsonify({"error": str(e)}), 500
+
     @app.post("/predict")
     def predict():
         payload: Dict[str, Any] = request.get_json(silent=True) or {}
@@ -61,7 +69,7 @@ def create_app(model_dir: str) -> Flask:
             return jsonify({"error": "Missing required field: text"}), 400
 
         processed_text, i18n_meta = _i18n_preprocess(text)
-        result = predict_text(model, tokenizer, device, processed_text)
+        result = predict_text(model, tokenizer, device, processed_text, url=None)
         return jsonify({**result, **i18n_meta})
 
     @app.post("/predict_url")
@@ -76,7 +84,7 @@ def create_app(model_dir: str) -> Flask:
             return jsonify({"error": "Could not extract article text from the provided URL."}), 400
 
         processed_text, i18n_meta = _i18n_preprocess(text)
-        result = predict_text(model, tokenizer, device, processed_text)
+        result = predict_text(model, tokenizer, device, processed_text, url=url)
         return jsonify({**result, **i18n_meta})
 
     return app

@@ -1,7 +1,7 @@
 {
   "model_name": "bert-base-uncased",
-  "epochs": 3,
-  "batch_size": 8,
+  "epochs": 2,
+  "batch_size": 16,
   "lr": 2e-05,
   "max_length": 256,
   "seed": 42,
@@ -10,23 +10,23 @@
     "n_null_text": 8,
     "n_null_label": 0,
     "class_counts": {
-      "1": 1871,
-      "0": 1850
+      "0": 1850,
+      "1": 1871
     },
     "class_ratio": {
-      "1": 0.5028218220908358,
-      "0": 0.4971781779091642
+      "0": 0.4971781779091642,
+      "1": 0.5028218220908358
     }
   },
   "val_metrics": {
-    "eval_loss": 0.010599292814731598,
-    "eval_accuracy": 0.9986577181208054,
-    "eval_precision": 0.9973404255319149,
+    "eval_loss": 0.0007550441077910364,
+    "eval_accuracy": 1.0,
+    "eval_precision": 1.0,
     "eval_recall": 1.0,
-    "eval_f1": 0.9986684420772304,
-    "eval_runtime": 5.4076,
-    "eval_samples_per_second": 137.77,
-    "eval_steps_per_second": 17.383,
-    "epoch": 3.0
+    "eval_f1": 1.0,
+    "eval_runtime": 3.9817,
+    "eval_samples_per_second": 186.855,
+    "eval_steps_per_second": 11.804,
+    "epoch": 2.0
   }
 }

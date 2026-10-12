@@ -8,16 +8,7 @@ import sys
 from dataclasses import asdict
 from typing import Dict, List
 
-import numpy as np
 import torch
-from sklearn.metrics import (
-    accuracy_score,
-    confusion_matrix,
-    f1_score,
-    precision_score,
-    recall_score,
-)
-from sklearn.model_selection import train_test_split
 from torch.utils.data import Dataset
 from transformers import (
     AutoModelForSequenceClassification,
@@ -33,7 +24,33 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from data.dataset import prepare_dataframe
+from data.dataset import load_csv_data
+
+
+def _train_val_split(texts: List[str], labels: List[int], val_ratio: float = 0.2, seed: int = 42):
+    """Deterministic stratified train/validation split without scikit-learn."""
+    import random
+    rng = random.Random(seed)
+    indices_by_class: Dict[int, List[int]] = {}
+    for idx, l in enumerate(labels):
+        indices_by_class.setdefault(l, []).append(idx)
+
+    train_idx, val_idx = [], []
+    for cls, idxs in indices_by_class.items():
+        rng.shuffle(idxs)
+        n_val = max(1, int(len(idxs) * val_ratio))
+        val_idx.extend(idxs[:n_val])
+        train_idx.extend(idxs[n_val:])
+
+    rng.shuffle(train_idx)
+    rng.shuffle(val_idx)
+
+    return (
+        [texts[i] for i in train_idx],
+        [texts[i] for i in val_idx],
+        [labels[i] for i in train_idx],
+        [labels[i] for i in val_idx],
+    )
 
 
 MODEL_NAME = "bert-base-uncased"
@@ -60,34 +77,50 @@ class NewsDataset(Dataset):
         return item
 
 
-def computing_matrices(eval_pred):
-    """
-    Prints "computing_matrices" available at evaluation-time:
-    - logits matrix shape and a small preview
-    - confusion matrix (2x2 for binary classification)
-    """
-    logits, labels = eval_pred
-    preds = np.argmax(logits, axis=-1)
+def _make_compute_metrics(debug: bool = False):
+    """Return a compute_metrics callback, using PyTorch for all operations."""
 
-    print("===== computing matrices =====")
-    print("logits shape:", logits.shape)
-    print(
-        "logits preview (first 5 rows, 2 cols):\n",
-        np.array2string(logits[:5], precision=4, suppress_small=True),
-    )
-    print("labels preview (first 5):", labels[:5])
-    print("preds preview (first 5):", preds[:5])
+    def computing_matrices(eval_pred):
+        """
+        Evaluation-time metrics callback computed with pure PyTorch tensors:
+        - Accuracy, Precision, Recall, F1
+        """
+        logits, labels = eval_pred
+        logits_t = torch.tensor(logits)
+        labels_t = torch.tensor(labels)
+        preds_t = torch.argmax(logits_t, dim=-1)
 
-    cm = confusion_matrix(labels, preds)
-    print("confusion_matrix (labels x preds):\n", cm)
-    print("==============================")
+        if debug:
+            print("===== compute matrices (debug) =====")
+            print("logits shape:", logits_t.shape)
+            print("labels preview (first 5):", labels_t[:5].tolist())
+            print("preds preview (first 5):", preds_t[:5].tolist())
+        else:
+            print("===== computing matrices =====")
 
-    return {
-        "accuracy": accuracy_score(labels, preds),
-        "precision": precision_score(labels, preds, zero_division=0),
-        "recall": recall_score(labels, preds, zero_division=0),
-        "f1": f1_score(labels, preds, zero_division=0),
-    }
+        # Confusion matrix: binary 0 and 1
+        tp = int(((preds_t == 1) & (labels_t == 1)).sum().item())
+        fp = int(((preds_t == 1) & (labels_t == 0)).sum().item())
+        fn = int(((preds_t == 0) & (labels_t == 1)).sum().item())
+        tn = int(((preds_t == 0) & (labels_t == 0)).sum().item())
+
+        print(f"confusion_matrix (labels x preds):\n[[{tn}  {fp}]\n [{fn}  {tp}]]")
+        print("==============================")
+
+        total = len(labels_t)
+        accuracy = (tp + tn) / total if total > 0 else 0.0
+        precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
+        recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+        f1 = (2 * precision * recall) / (precision + recall) if (precision + recall) > 0 else 0.0
+
+        return {
+            "accuracy": float(accuracy),
+            "precision": float(precision),
+            "recall": float(recall),
+            "f1": float(f1),
+        }
+
+    return computing_matrices
 
 
 def parse_args() -> argparse.Namespace:
@@ -99,6 +132,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--lr", type=float, default=2e-5)
     p.add_argument("--max_length", type=int, default=256)
     p.add_argument("--seed", type=int, default=42)
+    p.add_argument("--debug", action="store_true", help="Enable verbose debug output during evaluation")
     return p.parse_args()
 
 
@@ -106,15 +140,14 @@ def main() -> None:
     args = parse_args()
     set_seed(args.seed)
 
-    df, stats = prepare_dataframe(args.csv, shuffle=True, seed=args.seed)
+    texts, labels, stats = load_csv_data(args.csv, shuffle=True, seed=args.seed)
     print("Dataset stats:", asdict(stats))
 
-    X_train, X_val, y_train, y_val = train_test_split(
-        df["text"].tolist(),
-        df["label"].tolist(),
-        test_size=0.2,
-        random_state=args.seed,
-        stratify=df["label"].tolist() if df["label"].nunique() > 1 else None,
+    X_train, X_val, y_train, y_val = _train_val_split(
+        texts,
+        labels,
+        val_ratio=0.2,
+        seed=args.seed,
     )
 
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
@@ -150,7 +183,7 @@ def main() -> None:
         "train_dataset": train_ds,
         "eval_dataset": val_ds,
         "data_collator": collator,
-        "compute_metrics": computing_matrices,
+        "compute_metrics": _make_compute_metrics(debug=args.debug),
     }
     trainer_params = inspect.signature(Trainer.__init__).parameters
     if "processing_class" in trainer_params:

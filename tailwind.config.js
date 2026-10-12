@@ -11,14 +11,15 @@ module.exports = {
     extend: {
       colors: {
         factra: {
-          900: '#0B0F19', // Deep slate background
-          800: '#111827', // Surfaces/Cards
-          750: '#172033', // Lighter hover states
+          900: '#070A11', // Darker richer slate
+          800: '#111827', // Surfaces
+          750: '#172033', // Hover
           700: '#1F2937', // Borders
         },
-        primary: '#3B82F6', // Cyber Blue
-        success: '#10B981', // Neon Green (Real)
-        danger: '#F43F5E', // Neon Rose (Fake)
+        primary: '#3B82F6',
+        success: '#10B981',
+        danger: '#F43F5E',
+        accent: '#8B5CF6' // Purple accent for gradients
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],

@@ -19,6 +19,9 @@ def detect_language(text: str) -> str:
     """
     try:
         from langdetect import detect  # type: ignore
+        from langdetect import DetectorFactory  # type: ignore
+
+        DetectorFactory.seed = 0
 
         lang = detect(text)
         if not isinstance(lang, str) or not lang:
@@ -52,7 +55,14 @@ def translate_to_english(text: str, source_lang: str) -> I18NResult:
     try:
         from deep_translator import GoogleTranslator  # type: ignore
 
-        translated = GoogleTranslator(source=source_lang, target="en").translate(text)
+        # chunk if text exceeds Google Translate limit
+        CHUNK_SIZE = 4500
+        if len(text) > CHUNK_SIZE:
+            chunks = [text[i:i+CHUNK_SIZE] for i in range(0, len(text), CHUNK_SIZE)]
+            translated_chunks = [GoogleTranslator(source=source_lang, target='en').translate(chunk) for chunk in chunks]
+            translated = ' '.join(translated_chunks)
+        else:
+            translated = GoogleTranslator(source=source_lang, target="en").translate(text)
         if not isinstance(translated, str) or not translated.strip():
             return I18NResult(
                 detected_language=source_lang,
