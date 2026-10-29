@@ -1,115 +1,122 @@
 # Factra — 8-Minute Project Presentation Script (Group of 4)
 
 > **Team Members:** Yash · Soham · Prarthana · Mrudula  
-> **Format:** 2 minutes per speaker (Total: ~8 minutes)  
-> **Project:** Factra — Intelligence-First Misinformation Detection Suite powered by Fine-Tuned BERT & Real-Time Web Consensus
+> **Format:** Exactly 2 minutes per speaker (Total: 8 minutes)  
+> **Speech Target:** ~260–280 words per speaker at a steady, natural cadence (130–140 words/min)  
+> **Project:** Factra — Intelligence-First Misinformation Detection Suite powered by Fine-Tuned BERT, Explainable AI, & Real-Time Web Consensus
 
 ---
 
-## ⏱️ Presentation Timeline Overview
+## ⏱️ Presentation Timeline & Role Breakdown
 
-| Speaker | Member | Core Domain | Key Talking Points | Duration |
-|:---:|:---|:---|:---|:---:|
-| **1** | **Yash** | Problem Statement & System Architecture | Problem definition, limitation of naive classifiers, high-level 4-pillar architecture | 0:00 – 2:00 |
-| **2** | **Soham** | Deep Learning Core (BERT Fine-Tuning) | `bert-base-uncased`, self-attention, loss function, GPU training on RTX 3050, metrics | 2:00 – 4:00 |
-| **3** | **Prarthana** | Web Consensus & Verification Engine | Serper.dev Google News indexing, Google Fact Check API, source reputation scoring | 4:00 – 6:00 |
-| **4** | **Mrudula** | XAI, Linguistic Profiling & Live Demo | Attention weights for cue extraction, readability/tone metrics, extension-to-dashboard workflow | 6:00 – 8:00 |
+```
+[0:00 - 2:00]  YASH        ───>  Motivation, Flaws of Baseline Classifiers & 4-Pillar Architecture
+[2:00 - 4:00]  SOHAM       ───>  Deep Learning Core, Bidirectional Self-Attention & GPU Training
+[4:00 - 6:00]  PRARTHANA   ───>  Real-World Grounding, Serper News Consensus & Source Reputation
+[6:00 - 8:00]  MRUDULA     ───>  Explainable AI (XAI Attention), Client Engineering & Live Demo
+```
+
+| Speaker | Member | Core Domain | Key Technical Terms to Mention |
+|:---:|:---|:---|:---|
+| **1** | **Yash** | Architecture & Pipeline Vision | Grounding vs. Classification, Multi-modal Ingestion, SSRF Prevention, Microservice decoupled design |
+| **2** | **Soham** | Deep Learning & BERT Fine-Tuning | `bert-base-uncased`, `[CLS]` token pooling, Cross-Entropy Loss, AdamW, FP16, RTX 3050 CUDA |
+| **3** | **Prarthana** | Web Consensus & Verification | Serper.dev Google News indexing, Google Fact Check Tools API, Source Reputation Matrix, Heuristic Dampening |
+| **4** | **Mrudula** | XAI, Linguistic Telemetry & Demo | Layer-12 Multi-Head Attention Extraction, DOM TreeWalker Highlighting, Manifest V3, Forensic Dashboard |
 
 ---
 
-## 🎤 Speaker 1: Yash — Problem Statement & Architecture Vision
-**Time:** `0:00 – 2:00 (approx. 240 words)`
+## 🎤 Speaker 1: Yash — Problem Statement, Pitfalls of Baselines & Architecture
+**Target Time:** `0:00 – 2:00` | **Word Count:** ~275 words
 
 ### 🗣️ Script:
-> "Good morning respected professors and reviewers. I am **Yash**, and on behalf of our team with Soham, Prarthana, and Mrudula, we present **Factra** — an intelligence-first misinformation detection suite.
+> "Good morning respected professors and reviewers. I am **Yash**, and together with Soham, Prarthana, and Mrudula, we present **Factra** — an intelligence-first misinformation detection platform.
 >
-> Today, the digital ecosystem faces a massive proliferation of fake news. Traditional machine learning solutions treat misinformation purely as a static text-classification problem using TF-IDF or naive sentiment classifiers. The fatal flaw here is that well-written, professionally phrased fake news easily fools surface-level classifiers, while legitimate breaking news with bold words gets falsely flagged.
+> In recent years, automated fake news detection has relied primarily on static NLP baselines like Bag-of-Words, TF-IDF with SVMs, or shallow LSTMs. However, in our literature survey, we uncovered a critical vulnerability known as **the stylistic paradox**: a deceptive actor can craft an entirely fabricated story using formal, journalistic vocabulary, completely fooling a surface-level classifier. Conversely, urgent breaking news often contains bold, emotive language and gets falsely penalized.
 >
-> To solve this, we engineered **Factra V2.0**. Factra does not just classify text; it performs **grounding**. It asks two critical questions:
-> 1. *What linguistic and stylistic patterns does the neural network observe?*
-> 2. *Is anyone else in the credible global news ecosystem actually reporting this claim?*
+> To resolve this fundamental limitation, we designed **Factra** around a core paradigm: **Grounding over Naive Classification**. Instead of asking only *'How does this text sound?'*, our system simultaneously verifies *'Does this event exist within the verifiable real-world news ecosystem?'*
 >
-> Architecturally, Factra consists of four interconnected layers:
-> - First, an ingestion pipeline supporting raw text and dynamic URL web-scraping.
-> - Second, our fine-tuned transformer backbone based on **BERT**.
-> - Third, an external **Web Consensus Engine** connecting to Google News through Serper API and Google Fact Check Tools.
-> - And fourth, an explainability and user experience layer deployed as a **Chrome Extension** and a full **Forensic Dashboard**.
+> Architecturally, Factra integrates four distinct engineering layers:
+> 1. **Ingestion & Security:** An input engine supporting raw paragraphs and live web URLs, fortified with Server-Side Request Forgery (SSRF) filters to block private IP probing.
+> 2. **Deep Learning Core:** A fine-tuned bidirectional BERT transformer that captures complex syntactic dependencies.
+> 3. **The Web Consensus Engine:** Real-time cross-referencing against Google News and certified fact-checking databases.
+> 4. **Client & Explainability Layer:** A Manifest V3 Chrome Extension operating directly in the browser, connected to an interactive forensic dashboard.
 >
-> I will now hand over to **Soham**, who will explain our Deep Learning training pipeline and mathematical formulation."
+> This end-to-end synergy ensures that stylistic confidence is always validated by empirical real-world evidence. 
+>
+> I will now pass the stage to **Soham**, who will dive into our Deep Learning formulation and training pipeline."
 
 ---
 
-## 🎤 Speaker 2: Soham — Deep Learning Core & Model Fine-Tuning
-**Time:** `2:00 – 4:00 (approx. 250 words)`
+## 🎤 Speaker 2: Soham — Deep Learning Core, Attention Mechanics & GPU Training
+**Target Time:** `2:00 – 4:00` | **Word Count:** ~280 words
 
 ### 🗣️ Script:
-> "Thank you, Yash. Respected reviewers, I am **Soham**, and I will walk you through the Deep Learning core of Factra.
+> "Thank you, Yash. Respected panel, I am **Soham**, and I will walk you through the Deep Learning core of Factra.
 >
-> At the center of our pipeline is a fine-tuned **`bert-base-uncased`** transformer model. BERT uses bidirectional self-attention, which means for every token in a news headline or paragraph, it computes attention across all preceding and succeeding tokens simultaneously. This allows it to capture semantic subtleties, sarcasm, passive clickbait structures, and deceptive phrasing that unidirectional models miss.
+> We chose **`bert-base-uncased`**, a transformer encoder architecture comprising 12 stacked layers, 12 self-attention heads per layer, and a 768-dimensional hidden state, totaling 110 million parameters. Unlike unidirectional models like standard RNNs or GPT-style autoregressive models that attend only left-to-right, BERT's bidirectional multi-head self-attention computes scaled dot-product attention across all tokens simultaneously:
+> $$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V$$
+> This allows the model to capture subtle contextual cues, deceptive passive phrasing, and distant negation words across a 256-token budget.
 >
-> For our classification head, we take the `[CLS]` token representation from BERT's final hidden state ($768$ dimensions), pass it through a linear dropout layer, and feed it into a binary classification head with two output logits: Class 0 for *Real* and Class 1 for *Fake*.
+> For our binary classification task, we extract the final hidden state of the special `[CLS]` token, which encapsulates sequence-level semantic representations. This 768-dimensional vector passes through a dropout layer with probability $0.1$, followed by a linear projection layer outputting raw logits for two classes: *Real* ($0$) and *Fake* ($1$), normalized through a Softmax function.
 >
-> **Training specifics:**
-> - We trained using the AdamW optimizer with a learning rate of $2 \times 10^{-5}$ and linear learning rate warmup.
-> - We used cross-entropy loss with dynamic padding and a sequence length budget of $256$ tokens.
-> - The model was trained and validated locally on an **NVIDIA GeForce RTX 3050 Laptop GPU** using mixed precision (FP16).
-> - Across our stratified split of news datasets, the model achieved **high validation accuracy and an F1 score above 0.99**, with loss converging to **0.00075**.
+> **Training & Optimization:**
+> - We trained the network on an **NVIDIA GeForce RTX 3050 Laptop GPU** using PyTorch with CUDA 12.4 acceleration and FP16 mixed precision.
+> - We optimized using **AdamW** with a learning rate of $2 \times 10^{-5}$, linear learning-rate warmup, and categorical cross-entropy loss.
+> - On our balanced, stratified dataset, training converged across 374 batches in 2 epochs, reaching a validation cross-entropy loss of **0.00075** and an F1-score exceeding **0.99**.
 >
-> Crucially, rather than relying solely on raw softmax probabilities, we map the model's confidence into a normalized Credibility Score from 0 to 100, which is then dynamically adjusted by linguistic indicators and our consensus engine.
+> Furthermore, we corrected a crucial probability inversion: our output confidence reflects the exact probability of the predicted class, directly feeding into our credibility scoring algorithm.
 >
-> I now invite **Prarthana** to explain the Web Consensus and Verification Engine."
+> I will now hand over to **Prarthana** to explain how we ground these predictions using Web Consensus."
 
 ---
 
-## 🎤 Speaker 3: Prarthana — Web Consensus & Real-Time Verification
-**Time:** `4:00 – 6:00 (approx. 250 words)`
+## 🎤 Speaker 3: Prarthana — Real-World Grounding, Consensus Engine & Source Reputation
+**Target Time:** `4:00 – 6:00` | **Word Count:** ~275 words
 
 ### 🗣️ Script:
-> "Thank you, Soham. I am **Prarthana**, and I will explain how Factra grounds model predictions against real-world news using our **Web Consensus Engine**.
+> "Thank you, Soham. I am **Prarthana**, and I will explain how Factra grounds model inferences in real-world facts using our **Web Consensus Engine**.
 >
-> A standalone neural network has a knowledge cutoff and no awareness of real-time events. If an article claims *'NASA discovered life on Mars today'*, a linguistic classifier might mark it as credible purely because NASA is a formal, reputable word.
+> Any pre-trained neural network suffers from a temporal cutoff; it cannot know what occurred five minutes ago. If an article claims, *'Scientists confirmed an asteroid collision today'*, BERT evaluates its linguistic structure, but cannot verify whether astronomers actually reported it.
 >
-> To counter this, Factra introduces **Web Consensus Verification (Pillar 2)**:
-> 1. When an article or URL is analyzed, our backend extracts the core claim and queries global news indexes in real-time via the **Serper.dev Google Search API**.
-> 2. We extract the top reporting sources and evaluate coverage density. If a major breaking story has zero footprint across global wires, the consensus score drops sharply, triggering an *'Isolated Fabricated Claim'* warning.
-> 3. We cross-reference reporting publishers against our curated **Source Reputation Database**, which scores established wire agencies like Reuters, AP News, BBC, and NPR with high trust multipliers.
-> 4. We also query the **Google Fact Check Tools API** using extracted sentence claims to see if accredited independent fact-checkers like Snopes or PolitiFact have already reviewed the claim.
+> To eliminate hallucinations and temporal blind spots, Factra implements **Pillar 2: Real-Time Web Consensus**:
+> 1. When an article or claim is submitted, our backend dynamically formulates a search query and queries global live news indexes using the **Serper Google Search API**.
+> 2. We extract the reporting headlines, snippets, and domains, and evaluate **Coverage Density**. If a monumental breaking claim has zero footprint across global news indices, the consensus score plummets, alerting the user to an isolated fabrication.
+> 3. We cross-reference every reporting outlet against our curated **Source Reputation Matrix**. Established wire services like Reuters, AP News, BBC, and Bloomberg carry high credibility multipliers, while unverified blogs receive lower trust weights.
+> 4. In parallel, our system queries the **Google Fact Check Tools API**, checking whether accredited independent organizations like Snopes or PolitiFact have already investigated and debunked the specific claim.
 >
-> By synthesizing model confidence ($0.4$), web consensus ($0.4$), and publisher reputation ($0.2$), Factra eliminates false positives on breaking news.
+> Finally, we combine BERT’s probability with Web Consensus and Source Reputation using a weighted formula: $40\%$ neural confidence, $40\%$ web consensus, and $20\%$ source reputation, modulated by heuristic penalties for clickbait and excessive punctuation.
 >
-> I now pass the presentation to **Mrudula**, who will showcase our Explainable AI, linguistic telemetry, and a live demonstration."
+> I now pass the floor to **Mrudula** to present our Explainable AI layer and the live client interfaces."
 
 ---
 
-## 🎤 Speaker 4: Mrudula — Explainable AI (XAI) & Live Demonstration
-**Time:** `6:00 – 8:00 (approx. 250 words)`
+## 🎤 Speaker 4: Mrudula — Explainable AI (XAI), Client Engineering & Live Demo
+**Target Time:** `6:00 – 8:00` | **Word Count:** ~270 words
 
 ### 🗣️ Script:
-> "Thank you, Prarthana. I am **Mrudula**, and I will cover our Explainable AI (XAI) layer and the client interfaces.
+> "Thank you, Prarthana. Respected professors, I am **Mrudula**, and I will demonstrate how Factra bridges complex Deep Learning with end-user trust through **Explainable AI (XAI)** and client engineering.
 >
-> In high-stakes misinformation detection, a black-box percentage is not enough — users and moderators need to know *why* a decision was made.
+> In high-stakes misinformation detection, users reject black-box verdicts. Factra delivers explainability on two levels:
+> 1. **Neural Attention Mapping (XAI):** By enabling `output_attentions=True` during inference, we extract the 12th layer multi-head attention matrix. We average across all 12 heads and compute the attention weights linking the `[CLS]` token to every word. Tokens that spike in attention are identified as the neural network's primary decision drivers and displayed as anomalous cues.
+> 2. **Linguistic Telemetry:** We compute three quantitative indices: *Tone Profiling* to detect alarmist vs. informative language, *Complexity Index* measuring sentence depth, and *Objectivity Vector* quantifying first-person emotive bias.
 >
-> Factra implements **Dual-Layer Explainability**:
-> - **Attention Mapping (XAI):** During the forward pass with `output_attentions=True`, we extract the attention weights between the `[CLS]` token and all input tokens from BERT's final layer. Tokens with anomalous attention spikes are tagged as influential cues.
-> - **Linguistic Telemetry:** We compute three quantitative dimensions:
->   1. *Tone Profiling* — flags alarmist vs. informative tone based on sensational cue density.
->   2. *Complexity Index* — measures sentence length and structural sophistication.
->   3. *Objectivity Vector* — measures first-person subjectivity versus factual reporting.
+> **Client Interfaces:**
+> We engineered two seamless touchpoints:
+> - A **Chrome Extension (Manifest V3)** that runs directly in the user’s browser. It extracts DOM paragraph text, strips sidebars and advertisements, and uses non-destructive DOM TreeWalkers to highlight suspicious tokens right on the web page.
+> - A **Forensic Intelligence Dashboard** that visualizes the SVG Credibility Gauge, consensus coverage circle, external fact-checking badges, and local scan history.
 >
-> **User Deployment:**
-> We engineered two intuitive entry points:
-> 1. A **Chrome Extension (Manifest V3)** that allows reading any article on the web, extracting clean DOM paragraphs while stripping navigation ads, highlighting flagged suspicious terms directly in the webpage using non-destructive DOM TreeWalkers, and presenting immediate verdict metrics.
-> 2. A **Deep-Dive Dashboard** featuring our animated SVG credibility vector gauge, real-time source consensus list, keyword chips, and local scan history.
+> *(Gesture to the screen/live demo)*
+> As seen in our live running application: when we submit a claim, the backend completes inference in under 200 milliseconds on our local GPU, the gauge animates to the calculated credibility score, and the corroborating international news sources appear below.
 >
-> *(Point to screen or trigger quick demo on the dashboard)*
-> As you can see, passing a real article displays high credibility and global source verification, while sensational claims trigger low credibility and highlight linguistic cues.
->
-> Thank you, and we are now open for questions!"
+> This concludes our presentation. We are now ready for the viva and technical defense questions. Thank you!"
 
 ---
 
-## 🎯 Quick Delivery Checklist for Tomorrow
-- [ ] **Yash:** Speak first, clear and authoritative. Set the big-picture context.
-- [ ] **Soham:** Emphasize equations, GPU, BERT self-attention, and training details.
-- [ ] **Prarthana:** Emphasize why AI alone isn't enough and how Serper API prevents hallucinations.
-- [ ] **Mrudula:** Keep browser open on [http://127.0.0.1:5000/](http://127.0.0.1:5000/) and click "Analyze Now" during her segment.
+## 📋 Speaker Transition & Coordination Cues
+
+```
+[Yash finishes]     ──> "I will now hand over to Soham, who will explain our Deep Learning training pipeline and mathematical formulation."
+[Soham finishes]    ──> "I will now hand over to Prarthana to explain how we ground these predictions using Web Consensus."
+[Prarthana finishes]──> "I now pass the floor to Mrudula to present our Explainable AI layer and the live client interfaces."
+[Mrudula finishes]  ──> "This concludes our presentation. We are now ready for the viva and technical defense questions. Thank you!"
+```
